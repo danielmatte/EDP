@@ -53,6 +53,11 @@ void RotacaoDuplaEsquerda(SNo **raiz)
   rotacaoEsquerda(raiz);
 }
 
+
+
+// ------------------------------------------------------------------
+// Trata Inserção de nós
+// ------------------------------------------------------------------
 void trataInsercaoEsquerda(SNo **raiz, int *mudouAltura)
 {
   if ((*raiz)->f == 1) // Caso 1
@@ -159,6 +164,122 @@ void insereNo(SNo **raiz, int chave, int *mudouAltura)
       trataInsercaoDireita(raiz, mudouAltura);
   }
 }
+
+// ------------------------------------------------------------------
+// Trata Remoção de nós
+// ------------------------------------------------------------------
+void trataRemocaoEsquerda(SNo **raiz, int *mudouAltura)
+{
+  if ((*raiz)->f == -1) // Caso 1
+  {
+    atualizaF((*raiz), 0);
+    *mudouAltura = 1;
+  }
+  else if ((*raiz)->f == 0) // Caso 2
+  {
+    atualizaF((*raiz), 1);
+    *mudouAltura = 0;
+  }
+  else if ((*raiz)->f == 1 && ((*raiz)->fd->f == 0 || 
+                               (*raiz)->fd->f == 1)) // Caso 3
+  {
+    rotacaoEsquerda(raiz);
+    if ((*raiz)->f == 0)
+    {
+      atualizaF((*raiz), -1);
+      atualizaF((*raiz)->fe, 1);
+      *mudouAltura = 0;
+    }
+    else if((*raiz)->f == 1)
+    {
+      atualizaF((*raiz), 0);
+      atualizaF((*raiz)->fe, 0);
+      *mudouAltura = 1;
+    }
+  }
+  else if ( (*raiz)->f == 1 && (*raiz)->fd->f == -1) // Caso 4
+  {
+    RotacaoDuplaEsquerda(raiz);
+    if ((*raiz)->f == -1)
+    {
+      atualizaF((*raiz)->fe, 0);
+      atualizaF((*raiz)->fd, 1);
+    }
+    else if ((*raiz)->f == 1)
+    {
+      atualizaF((*raiz)->fe, -1);
+      atualizaF((*raiz)->fd, 0);
+    }
+    else if ((*raiz)->f == 0)
+    {
+      atualizaF((*raiz)->fe, 0);
+      atualizaF((*raiz)->fd, 0);
+    }
+    atualizaF((*raiz), 0);
+    *mudouAltura = 1;
+  }
+}
+
+void trataRemocaoDireita(SNo **raiz, int *mudouAltura)
+{
+  
+}
+
+void executaRemocao(SNo **raiz, int *mudouAltura)
+{
+  if ((*raiz)->fe == NULL && (*raiz)->fd == NULL)
+  {
+    free(*raiz);
+    (*raiz) = NULL;
+    *mudouAltura = 1;
+  }
+  else if ((*raiz)->fe == NULL)
+  {
+    SNo *temp = (*raiz);
+    (*raiz) = (*raiz)->fd;
+    free(temp);
+    *mudouAltura = 1;
+  }
+  else if ((*raiz)->fd == NULL)
+  {
+    SNo *temp = (*raiz);
+    (*raiz) = (*raiz)->fe;
+    free(temp);
+    *mudouAltura = 1;
+  }
+  else 
+  {
+    SNo **sucessor = &((*raiz)->fd);
+    while ( (*sucessor)->fe != NULL)
+      sucessor = &((*sucessor)->fe);
+    (*raiz)->chave = (*sucessor)->chave;
+    removeNo(&((*raiz)->fd), (*sucessor)->chave, mudouAltura);
+  }
+}
+
+void removeNo(SNo **raiz, int chave, int *mudouAltura)
+{
+  if((*raiz) == NULL)
+    return;
+  
+  if(chave < (*raiz)->chave)
+  {
+    removeNo(&((*raiz)->fe), chave, mudouAltura);
+    if (*mudouAltura == 1)
+      trataRemocaoEsquerda(raiz, mudouAltura);
+  }
+  else if (chave > (*raiz)->chave)
+  {
+    removeNo(&(*raiz)->fd, chave, mudouAltura);
+    if (*mudouAltura == 1)
+      trataRemocaoDireita(raiz, mudouAltura);
+  }
+  else if (chave == (*raiz)->chave)
+  {
+    executaRemocao(raiz, mudouAltura);
+  }
+}
+
 
 void emOrdem(SNo *raiz, int quebraLinha)
 {
